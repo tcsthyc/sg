@@ -24,12 +24,12 @@ recorder_index = Recorder(cfg.bufferSize)
 recorder_middle = Recorder(cfg.bufferSize)
 recorder_ring = Recorder(cfg.bufferSize)
 recorder_little = Recorder(cfg.bufferSize)
-started = False
 
 class ReadThread (threading.Thread):
   def __init__(self, threadID, name, counter):
     threading.Thread.__init__(self)
     self.threadID = threadID
+    self.started = False
     self.initSer()
 
   def initSer(self):
@@ -42,19 +42,35 @@ class ReadThread (threading.Thread):
     ser.stopbits = cfg.stopbits
     ser.xonxoff = cfg.xonxoff
     ser.rtscts = cfg.rtscts
-    ser.open()
     self.ser = ser
 
+  def readData(self):
+    global dataCache, recorder_total, recorder_index, recorder_middle, recorder_ring, recorder_little
+    self.ser.open()
+    while not self.started:
+      line = self.ser.readline()
+      started = 'Start' in line
+      #print line
+      #print started
+    while True:
+      line = self.ser.readline()
+      # line = '1 2 3 4 10'
+      # print line
+      words = line.split(' ')
+      values = map(lambda x:float(x),words)
+      dataCache.append(values)
+      # print dataCache
+      recorder_total.record(values[0]+values[1]+values[2]+values[3])
+      recorder_index.record(values[0])
+      recorder_middle.record(values[1])
+      recorder_ring.record(values[2])
+      recorder_little.record(values[3])
+
   def run(self):
-    print "Starting " + self.name
-    print_time(self.name, self.counter, 0.5)
+    print "Start thread to read: " + self.name
+    self.readData()    
     print "Exiting " + self.name
 
-def print_time(threadName, counter, delay):
-  while counter:
-    time.sleep(delay)
-    print "%s: %s" % (threadName, time.ctime(time.time()))
-    counter -= 1
 
 
 def init():
@@ -68,13 +84,13 @@ def init():
   ser.stopbits = cfg.stopbits
   ser.xonxoff = cfg.xonxoff
   ser.rtscts = cfg.rtscts
-  ser.open()
   
   # th = ReadThread(1, "Thread-1", 10)
   # th.start()
 
 def readData():
   global ser, dataCache, recorder_total, recorder_index, recorder_middle, recorder_ring, recorder_little, started
+  ser.open()
   while not started:
     line = ser.readline()
     started = 'Start' in line

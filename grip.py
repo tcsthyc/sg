@@ -21,8 +21,10 @@ def data_gen():
 # username = raw_input("plz enter username: ")
 
 # init serial reader
-gtr.init()
-gtr.readData()
+# gtr.init()
+# gtr.readData()
+th = ReadThread(1, "Thread-1", 10)
+th.start()
 
 
 # init chart
