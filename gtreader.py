@@ -24,6 +24,7 @@ recorder_index = Recorder(cfg.bufferSize)
 recorder_middle = Recorder(cfg.bufferSize)
 recorder_ring = Recorder(cfg.bufferSize)
 recorder_little = Recorder(cfg.bufferSize)
+started = False
 
 class ReadThread (threading.Thread):
   def __init__(self, threadID, name, counter):
@@ -73,15 +74,21 @@ def init():
   # th.start()
 
 def readData():
-  global ser, dataCache, recorder_total, recorder_index, recorder_middle, recorder_ring, recorder_little
+  global ser, dataCache, recorder_total, recorder_index, recorder_middle, recorder_ring, recorder_little, started
+  while not started:
+    line = ser.readline()
+    started = 'Start' in line
+    #print line
+    #print started
   while True:
     line = ser.readline()
     # line = '1 2 3 4 10'
+    # print line
     words = line.split(' ')
     values = map(lambda x:float(x),words)
     dataCache.append(values)
-    print dataCache
-    recorder_total.record(values[0]+value[1]+value[2]+value[3])
+    # print dataCache
+    recorder_total.record(values[0]+values[1]+values[2]+values[3])
     recorder_index.record(values[0])
     recorder_middle.record(values[1])
     recorder_ring.record(values[2])

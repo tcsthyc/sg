@@ -1,4 +1,4 @@
-port = 0
+port = 6
 baudRate = 115200
 timeout = 1
 bytesize = 8
