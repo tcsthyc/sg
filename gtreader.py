@@ -19,6 +19,7 @@ class Recorder:
       self.pos += 1
 
 dataCache = []
+totalCount = 0
 recorder_total = Recorder(cfg.bufferSize)
 recorder_index = Recorder(cfg.bufferSize)
 recorder_middle = Recorder(cfg.bufferSize)
@@ -45,21 +46,19 @@ class ReadThread (threading.Thread):
     self.ser = ser
 
   def readData(self):
-    global dataCache, recorder_total, recorder_index, recorder_middle, recorder_ring, recorder_little
+    global dataCache, totalCount, recorder_total, recorder_index, recorder_middle, recorder_ring, recorder_little
     self.ser.open()
     while not self.started:
       line = self.ser.readline()
-      started = 'Start' in line
-      #print line
-      #print started
+      self.started = 'Start' in line
     while True:
       line = self.ser.readline()
-      # line = '1 2 3 4 10'
-      # print line
+      print line
       words = line.split(' ')
+      print words
       values = map(lambda x:float(x),words)
       dataCache.append(values)
-      # print dataCache
+      totalCount = totalCount + 1
       recorder_total.record(values[0]+values[1]+values[2]+values[3])
       recorder_index.record(values[0])
       recorder_middle.record(values[1])
@@ -71,45 +70,10 @@ class ReadThread (threading.Thread):
     self.readData()    
     print "Exiting " + self.name
 
+  def stop(self):
+    self.ser.close()
 
 
 def init():
-  global ser
-  ser = serial.Serial()
-  ser.baudrate = cfg.baudRate
-  ser.port = cfg.port
-  ser.timeout = cfg.timeout
-  ser.bytesize = cfg.bytesize
-  ser.parity = cfg.parity
-  ser.stopbits = cfg.stopbits
-  ser.xonxoff = cfg.xonxoff
-  ser.rtscts = cfg.rtscts
-  
-  # th = ReadThread(1, "Thread-1", 10)
-  # th.start()
-
-def readData():
-  global ser, dataCache, recorder_total, recorder_index, recorder_middle, recorder_ring, recorder_little, started
-  ser.open()
-  while not started:
-    line = ser.readline()
-    started = 'Start' in line
-    #print line
-    #print started
-  while True:
-    line = ser.readline()
-    # line = '1 2 3 4 10'
-    # print line
-    words = line.split(' ')
-    values = map(lambda x:float(x),words)
-    dataCache.append(values)
-    # print dataCache
-    recorder_total.record(values[0]+values[1]+values[2]+values[3])
-    recorder_index.record(values[0])
-    recorder_middle.record(values[1])
-    recorder_ring.record(values[2])
-    recorder_little.record(values[3])
-
-def end():
-  global ser
-  ser.close()
+  th = ReadThread(1, "Thread-1", 10)
+  th.start()
