@@ -16,6 +16,9 @@ x_range = 10
 
 # y axis range
 y_min = 90
-y_max = 200
+y_max = 1000
+
+y_total_min = 360
+y_total_max = 4000
 
 bufferSize = int(x_range / deltaTime)

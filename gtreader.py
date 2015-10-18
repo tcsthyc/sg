@@ -27,7 +27,7 @@ recorder_ring = Recorder(cfg.bufferSize)
 recorder_little = Recorder(cfg.bufferSize)
 
 class ReadThread (threading.Thread):
-  def __init__(self, threadID, name, counter):
+  def __init__(self, threadID, name):
     threading.Thread.__init__(self)
     self.threadID = threadID
     self.started = False
@@ -53,17 +53,27 @@ class ReadThread (threading.Thread):
       self.started = 'Start' in line
     while True:
       line = self.ser.readline()
-      print line
-      words = line.split(' ')
-      print words
-      values = map(lambda x:float(x),words)
-      dataCache.append(values)
-      totalCount = totalCount + 1
-      recorder_total.record(values[0]+values[1]+values[2]+values[3])
-      recorder_index.record(values[0])
-      recorder_middle.record(values[1])
-      recorder_ring.record(values[2])
-      recorder_little.record(values[3])
+      try:
+        words = line.split(' ')
+        values = map(lambda x:float(x),words)
+        dataCache.append(values)
+        recorder_total.record(values[0]+values[1]+values[2]+values[3])
+        recorder_index.record(values[0])
+        recorder_middle.record(values[1])
+        recorder_ring.record(values[2])
+        recorder_little.record(values[3])
+        totalCount = totalCount + 1
+      except Exception,e:
+        print e
+        values = [0,0,0,0]
+        dataCache.append(values)
+        recorder_total.record(0)
+        recorder_index.record(0)
+        recorder_middle.record(0)
+        recorder_ring.record(0)
+        recorder_little.record(0)
+        totalCount = totalCount + 1
+     
 
   def run(self):
     print "Start thread to read: " + self.name
@@ -73,7 +83,6 @@ class ReadThread (threading.Thread):
   def stop(self):
     self.ser.close()
 
-
 def init():
-  th = ReadThread(1, "Thread-1", 10)
+  th = ReadThread(1, "Thread-1")
   th.start()
